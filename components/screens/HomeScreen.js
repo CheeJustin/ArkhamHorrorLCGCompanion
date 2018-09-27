@@ -16,11 +16,34 @@ import {
   LayoutAnimation
 } from 'react-native';
 import Menu from '../general/Menu';
+import { AppLoading, Font } from 'expo';
+import MaterialIcons from '../../node_modules/@expo/vector-icons/fonts/MaterialIcons.ttf';
 
 const window = Dimensions.get('window');
-
+// await Font.loadAsync({
+//   Roboto: require("native-base/Fonts/Roboto.ttf"),
+//   FontAwesome: require("native-base/Fonts/FontAwesome.ttf"),
+//   Roboto_medium: require("native-base/Fonts/Roboto_medium.ttf"),
+//   Ionicons: require("@expo/vector-icons/fonts/Ionicons.ttf"),
+// });
 export default class HomeScreen extends React.Component {
 
+  state = {
+    fontLoaded: false
+  };
+
+  async componentWillMount() {
+    try {
+      await Font.loadAsync({
+        MaterialIcons
+      });
+
+      this.setState({ fontLoaded: true });
+    }
+    catch(error) {
+      console.log('error loading icon fonts', error);
+    }
+  }
 //   state = {
 //     modalVisible: false,
 //     menuButtonPos: 0,
@@ -70,7 +93,10 @@ export default class HomeScreen extends React.Component {
 //     this.setState({ currentLocation: this.state.locations[index] });
 //   };
 
-render() {
+  render() {
+    if (!this.state.fontLoaded) {
+      return <AppLoading />;
+    }
     return (
       <View style={styles.container}>
         <Text>Hello there</Text>
