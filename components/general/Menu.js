@@ -17,7 +17,7 @@ import {
   UIManager
 } from 'react-native';
 import Fade from '../general/Fade';
-import MenuIcon from '../general/MenuIcon';
+import MenuIcon from '../general/MenuIcon.js';
 
 export default class Menu extends React.Component {
 

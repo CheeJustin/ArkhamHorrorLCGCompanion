@@ -12,12 +12,16 @@ import {
   TouchableOpacity,
   Dimensions,
   TextInput,
+  ImageBackground,
   Modal,
+  FlatList,
   LayoutAnimation
 } from 'react-native';
-import Menu from '../general/Menu';
+import Menu from '../general/Menu.js';
 import { AppLoading, Font } from 'expo';
 import MaterialIcons from '../../node_modules/@expo/vector-icons/fonts/MaterialIcons.ttf';
+import { Colors } from '../../styles/common.js';
+import InvestigatorCard from '../InvestigatorCard.js';
 
 const window = Dimensions.get('window');
 // await Font.loadAsync({
@@ -29,8 +33,12 @@ const window = Dimensions.get('window');
 export default class HomeScreen extends React.Component {
 
   state = {
-    fontLoaded: false
+    fontLoaded: false,
+    isLoading: true,
+    data: []
   };
+
+  
 
   async componentWillMount() {
     try {
@@ -43,260 +51,117 @@ export default class HomeScreen extends React.Component {
     catch(error) {
       console.log('error loading icon fonts', error);
     }
-  }
-//   state = {
-//     modalVisible: false,
-//     menuButtonPos: 0,
-//     menuWidth: 40,
-//     overlayVisible: false,
-//     biome: 'city',
-//     locations: [
-//       require('../../assets/images/bg_forest.jpg'),
-//       require('../../assets/images/bg_volcano.jpg'),
-//       require('../../assets/images/bg_mountain.jpg'),
-//       require('../../assets/images/bg_pond.jpg'),
-//       require('../../assets/images/bg_ocean2.jpg')
-//     ],
-//     currentLocation: require('../../assets/images/bg_forest.jpg'),
-//   };
+  };
 
-//   setModalVisible(visible) {
-//     this.setState({modalVisible: visible});
-//   };
+  componentDidMount() {
+    // return fetch('https://facebook.github.io/react-native/movies.json')
+    // return fetch('https://arkhamdb.com/api/public/card/01001')
+    return fetch('https://arkhamdb.com/api/public/cards/core')
+      .then((response) => response.json())
+      .then((responseJson) => {
+        // let response = [responseJson];
+        let response = responseJson.slice(0, 10);
+        this.setState({
+          isLoading: false,
+          data: response,
+        }, function(){
+          
+        });
+      })
+      .catch((error) =>{
+        console.error(error);
+      });
+  };
 
-//   showButtons() {
-//     // Both of these being asynchronously called to prevent overlap of animations.
-//     setTimeout(() => {
-//       LayoutAnimation.easeInEaseOut();
-//       this.setState({overlayVisible: true});
-//     }, 0);
+  async getMoviesFromApi() {
+    try {
+      let response = await fetch(
+        'https://facebook.github.io/react-native/movies.json'
+      );
+      let responseJson = await response.json();
+      return responseJson.movies;
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-//     setTimeout(() => {
-//       LayoutAnimation.spring();
-//       this.setState({menuButtonPos: (this.state.menuWidth + 12)});
-//     }, 0);
+  renderItem = ({item, index}) => {
+    if (index == '1') {
+        return(
+            <View>
+                <Text>{item.code} {item.name}</Text>
+            </View>
 
-//   };
+        );
+    }
 
-//   dismissButtons() {
-//     // Animate the update
-//     LayoutAnimation.easeInEaseOut();
-//     this.setState({menuButtonPos: 0, overlayVisible: 0});
+    // if (item.idex == 2) {
+        return(
+            <View>
+            <Text>{index}</Text>
+                <Text>{item.name}</Text>
+            </View>
 
-//     // We wait a few milliseconds before fully dismissing the modal view.
-//     setTimeout(() => {
-//       this.setState({modalVisible: false});
-//     }, 400);
-//   };
+        );
+    // }
 
-//   setLocation(index) {
-//     this.setState({ currentLocation: this.state.locations[index] });
-//   };
+};
 
   render() {
-    if (!this.state.fontLoaded) {
+    if (this.state.isLoading) {
       return <AppLoading />;
     }
     return (
-      <View style={styles.container}>
-        <Text>Hello there</Text>
-
-        <Menu/>
-      </View>
+      <ImageBackground source={require('../../assets/images/background.png')}
+        resizeMode='cover' 
+        style={styles.background}>
+        <View style={styles.container}>
+          <Text style={styles.text}>Hello there</Text>
+          <FlatList
+            style={styles.flatlist}
+            contentContainerStyle={styles.flatlistContent}
+            data={this.state.data}
+            renderItem={({item, i}) => <InvestigatorCard data={item}/>}
+            keyExtractor={(item, index) => index.toString()}
+            numColumns={2}
+            columnWrapperStyle={{ marginTop: 10 }}
+          />
+          <Menu/>
+        </View>
+      </ImageBackground>
     );
   }
 }
 
-
-//   render() {
-//     return (
-//       <View style={styles.container}>
-
-//         <Modal
-//           animationType="none"
-//           transparent={true}
-//           visible={this.state.modalVisible}
-//           onShow={() => { this.showButtons(); }}
-//           onRequestClose={() => { alert('Modal has been closed.'); }}>
-
-//           <View style={{ flex: 1 }}>
-//             <Fade
-//               visible={this.state.overlayVisible}
-//               style={{ flex: 1 }}>
-//               <TouchableHighlight
-//                 underlayColor="#00000088"
-//                 onPress={() => { this.dismissButtons(); }}
-//                 style={{
-//                   flex: 1,
-//                   justifyContent: 'center',
-//                   alignItems: 'center',
-//                   backgroundColor: '#00000088'
-//                 }}>
-//                 <View style={{
-//                   width: 200,
-//                   height: 200,
-//                   borderRadius: 8,
-//                   borderColor: 'chocolate',
-//                   borderWidth: 2,
-//                   backgroundColor: 'burlywood',
-//                   justifyContent: 'center',
-//                   alignItems: 'center',
-//                   padding: 16,
-//                 }}>
-//                   <TouchableHighlight
-//                     onPress={() => {
-//                       this.setModalVisible(!this.state.modalVisible);
-//                     }}>
-//                       <Text style={{color: 'brown', textAlign: 'center', fontWeight: 'bold'}}>
-//                         Hello World!{'\n\n'}This is a beautiful menu!
-//                       </Text>
-//                   </TouchableHighlight>
-//                 </View>
-//               </TouchableHighlight>
-//             </Fade>
-
-
-//             <View
-//               style={{position: 'absolute', top: 0, right: 0}}>
-
-//               // First location button
-//               <MenuIcon
-//                 disabled={this.state.currentLocation === this.state.locations[0]}
-//                 style={{right: this.state.menuButtonPos * 5 + 12}}
-//                 source={this.state.locations[0]}
-//                 onPress={() => { this.setLocation(0); }}/>
-
-//               // Second location button
-//               <MenuIcon
-//                 disabled={this.state.currentLocation === this.state.locations[1]}
-//                 style={{right: this.state.menuButtonPos * 4 + 12}}
-//                 source={this.state.locations[1]}
-//                 onPress={() => { this.setLocation(1); }}/>
-
-//               // Third location button
-//               <MenuIcon
-//                 disabled={this.state.currentLocation === this.state.locations[2]}
-//                 style={{right: this.state.menuButtonPos * 3 + 12}}
-//                 source={this.state.locations[2]}
-//                 onPress={() => { this.setLocation(2); }}/>
-
-//               // Fourth location button
-//               <MenuIcon
-//                 disabled={this.state.currentLocation === this.state.locations[3]}
-//                 style={{right: this.state.menuButtonPos * 2 + 12}}
-//                 source={this.state.locations[3]}
-//                 onPress={() => { this.setLocation(3); }}/>
-
-//               // Fifth location button
-//               <MenuIcon
-//                 disabled={this.state.currentLocation === this.state.locations[4]}
-//                 style={{right: this.state.menuButtonPos + 12}}
-//                 source={this.state.locations[4]}
-//                 onPress={() => { this.setLocation(4); }}/>
-
-
-//               // Shop button
-//               <MenuIcon
-//                 style={{top: this.state.menuButtonPos + 28}}
-//                 icon='shop'
-//                 type='entypo'
-//                 onPress={() => { this.setModalVisible(true); }}/>
-
-
-//               // Work/watch ads button
-//               <MenuIcon
-//                 style={{top: this.state.menuButtonPos * 2 + 28}}
-//                 icon='work'
-//                 onPress={() => { this.setModalVisible(true); }}/>
-
-
-//               // Settings button
-//               <MenuIcon
-//                 style={{top: this.state.menuButtonPos * 3 + 28}}
-//                 icon='settings'
-//                 type='material-community'
-//                 onPress={() => { this.setModalVisible(true); }}/>
-
-
-//               // Original Menu Icon
-//               <MenuIcon
-//                 style={{right: 12}}
-//                 icon='earth'
-//                 type='material-community'
-//                 onPress={() => { this.props.navigation.navigate('Details'); }}/>
-//             </View>
-//           </View>
-//         </Modal>
-
-//         <Image
-//           style={{ width: window.width, height: window.height, resizeMode: 'cover' }}
-//           source={this.state.currentLocation}/>
-
-
-
-
-//         <TouchableHighlight
-//           style={[styles.menuButton]}
-//           underlayColor='sandybrown'
-//           onPress={() => { this.setModalVisible(true); }}>
-//           <Icon
-//             name='menu'
-//             color='chocolate'/>
-//         </TouchableHighlight>
-//       </View>
-//     );
-//   }
-// }
-
-// onPress={() => this.props.navigation.navigate('Details')}
-
-  // <ScrollView
-  //   style={{ flex: 1, backgroundColor: 'blue' }}
-  //   horizontal={true}>
-  // <Image style={{ flex: 1 }}source={require('../../assets/images/bg_forest.jpg')}/>
-  // </ScrollView>
-
-// <SvgUri
-// width="2100"
-// height="700"
-// source={require('../../assets/images/bgs_forest.svg')} />
-
-// <Button
-//   title="Go to Details"
-//   onPress={() => this.props.navigation.navigate('Details')}
-// />
-// <Image
-//   style={{
-//     height: 500,
-//     width: 700,
-//   }}
-//   source={require('../../assets/images/bgs_forest.jpg')}
-// />
-// <ScrollView
-//   style={{
-//     flexGrow: 1
-//   }}
-//   horizontal={true}>
-// <Image
-//   style={{
-//     flexGrow: 1,
-//     height: 500
-//   }}
-//   source={require('../../assets/images/bgs_forest.jpg')} />
-//   </ScrollView>
-
 const styles = StyleSheet.create({
+  background: {
+    width: '100%',
+    height: '100%'
+  },
   container: {
     flex: 1,
-    // backgroundColor: '#252527',
-    backgroundColor: '#333333',
     alignItems: 'center',
     justifyContent: 'center',
   },
   input: {
     height: 40,
-    backgroundColor: '#fff'
-  }
+    backgroundColor: '#fff',
+  },
+  text: {
+    color: Colors.text
+  },
+  flatlist: {
+    width: '100%',
+    // padding: 16,
+  },
+  flatlistContent: {
+
+    // flex: 1,
+    // flexDirection: 'row',
+    // justifyContent: 'space-between',
+    // padding: 10,
+    // marginBottom: 40
+  },
 });
 
 // const styles = StyleSheet.create({
