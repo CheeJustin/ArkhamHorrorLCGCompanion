@@ -43,7 +43,7 @@ export default class HomeScreen extends React.Component {
   async componentWillMount() {
     try {
       await Font.loadAsync({
-        MaterialIcons
+        MaterialIcons,
       });
 
       this.setState({ fontLoaded: true });
@@ -60,7 +60,7 @@ export default class HomeScreen extends React.Component {
       .then((response) => response.json())
       .then((responseJson) => {
         // let response = [responseJson];
-        let response = responseJson.slice(0, 10);
+        let response = responseJson.slice(0, 5);
         this.setState({
           isLoading: false,
           data: response,
@@ -108,7 +108,7 @@ export default class HomeScreen extends React.Component {
 };
 
   render() {
-    if (this.state.isLoading) {
+    if (!this.state.fontLoaded || this.state.isLoading) {
       return <AppLoading />;
     }
     return (
@@ -121,10 +121,15 @@ export default class HomeScreen extends React.Component {
             style={styles.flatlist}
             contentContainerStyle={styles.flatlistContent}
             data={this.state.data}
-            renderItem={({item, i}) => <InvestigatorCard data={item}/>}
+            renderItem={ ({item, i}) =>
+              <InvestigatorCard
+                data={item}
+                numColumns={4}
+                offset={4}/>
+            }
             keyExtractor={(item, index) => index.toString()}
-            numColumns={2}
-            columnWrapperStyle={{ marginTop: 10 }}
+            numColumns={4}
+            columnWrapperStyle={{ marginTop: 0 }}
           />
           <Menu/>
         </View>
@@ -148,14 +153,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   text: {
-    color: Colors.text
+    color: Colors.text,
   },
   flatlist: {
     width: '100%',
-    // padding: 16,
+    padding: 8,
   },
   flatlistContent: {
-
+    // marginBottom: 0
     // flex: 1,
     // flexDirection: 'row',
     // justifyContent: 'space-between',
