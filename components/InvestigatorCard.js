@@ -30,6 +30,24 @@ const AVATARS = {
   '02003': require('../assets/images/investigators/02003.png'),
   '02004': require('../assets/images/investigators/02004.png'),
   '02005': require('../assets/images/investigators/02005.png'),
+
+  '03001': require('../assets/images/investigators/03001.png'),
+  '03002': require('../assets/images/investigators/03002.png'),
+  '03003': require('../assets/images/investigators/03003.png'),
+  '03004': require('../assets/images/investigators/03004.png'),
+  '03005': require('../assets/images/investigators/03005.png'),
+  '03006': require('../assets/images/investigators/03006.png'),
+
+  '04001': require('../assets/images/investigators/04001.png'),
+  '04002': require('../assets/images/investigators/04002.png'),
+  '04003': require('../assets/images/investigators/04003.png'),
+  '04004': require('../assets/images/investigators/04004.png'),
+  '04005': require('../assets/images/investigators/04005.png'),
+
+  '99001': require('../assets/images/investigators/99001.png'),
+  '98007': require('../assets/images/investigators/98007.png'),
+  '98010': require('../assets/images/investigators/98010.png'),
+  '98013': require('../assets/images/investigators/98013.png'),
 }
 const SPACING = 8;
 // import {

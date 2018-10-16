@@ -23,6 +23,10 @@ import MaterialIcons from '../../node_modules/@expo/vector-icons/fonts/MaterialI
 import { Colors } from '../../styles/common.js';
 import InvestigatorCard from '../InvestigatorCard.js';
 
+const Datastore = require('react-native-local-mongodb');
+const db = new Datastore({ filename: 'asyncStorageKey', autoload: true });
+
+
 const window = Dimensions.get('window');
 // await Font.loadAsync({
 //   Roboto: require("native-base/Fonts/Roboto.ttf"),
@@ -53,37 +57,83 @@ export default class HomeScreen extends React.Component {
     }
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     // return fetch('https://facebook.github.io/react-native/movies.json')
     // return fetch('https://arkhamdb.com/api/public/card/01001')
-    return fetch('https://arkhamdb.com/api/public/cards/core')
+    // await db.find({$and: [{type_code: 'investigator'}, { $not: { pack_code: 'books' }}]})
+    //   .sort({ code: 1 })
+    //   .exec(async (err, investigators) => {
+    //     if (investigators.length > 0) {
+    //       console.log('EXISTING investigators count', investigators.length);
+    //       this.setState({
+    //         isLoading: false,
+    //         data: investigators,
+    //       }, function() {
+
+    //       });
+    //       return;
+    //     }
+    //     else {
+    //       console.log('NO investigators');
+    //     }
+    //   });
+    this.loadData();
+  };
+
+  async loadData() {
+    await db.find({$and: [{type_code: 'investigator'}, { $not: { pack_code: 'books' }}]})
+      .sort({ code: 1 })
+      .exec(async (err, investigators) => {
+        if (investigators.length > 0) {
+          console.log('EXISTING investigators count', investigators.length);
+          this.setState({
+            isLoading: false,
+            data: investigators,
+          }, function() {
+
+          });
+        }
+        else {
+          console.log('NO investigators');
+          this.fetchCards();
+        }
+      });
+  };
+
+  async fetchCards() {
+    console.log('Fetching cards!');
+    fetch('https://arkhamdb.com/api/public/cards')
       .then((response) => response.json())
       .then((responseJson) => {
-        // let response = [responseJson];
-        let response = responseJson.slice(0, 5);
-        this.setState({
-          isLoading: false,
-          data: response,
-        }, function(){
-          
+        let response = responseJson;
+        db.insert(response, async (err, newDocs) => {
+          if (err) {
+            console.log('Error', err);
+          }
+          else {
+            await db.find({$and: [{type_code: 'investigator'}, { $not: { pack_code: 'books' }}]})
+              .sort({ code: 1 })
+              .exec(async (err, investigators) => {
+                if (investigators.length > 0) {
+                  console.log('NEW ivestigators? count', investigators.length);
+                  this.setState({
+                    isLoading: false,
+                    data: investigators,
+                  }, function() {
+
+                  });
+                }
+                else {
+                  console.log('NO investigators');
+                }
+              });
+          }
         });
       })
       .catch((error) =>{
         console.error(error);
       });
-  };
-
-  async getMoviesFromApi() {
-    try {
-      let response = await fetch(
-        'https://facebook.github.io/react-native/movies.json'
-      );
-      let responseJson = await response.json();
-      return responseJson.movies;
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  }
 
   renderItem = ({item, index}) => {
     if (index == '1') {
@@ -116,7 +166,7 @@ export default class HomeScreen extends React.Component {
         resizeMode='cover' 
         style={styles.background}>
         <View style={styles.container}>
-          <Text style={styles.text}>Hello there</Text>
+          <Text style={[styles.text, styles.title]}>Investigators</Text>
           <FlatList
             style={styles.flatlist}
             contentContainerStyle={styles.flatlistContent}
@@ -155,11 +205,16 @@ const styles = StyleSheet.create({
   text: {
     color: Colors.text,
   },
+  title: {
+    marginTop: 32,
+    fontSize: 16,
+  },
   flatlist: {
     width: '100%',
     padding: 8,
   },
   flatlistContent: {
+    paddingBottom: 120,
     // marginBottom: 0
     // flex: 1,
     // flexDirection: 'row',
