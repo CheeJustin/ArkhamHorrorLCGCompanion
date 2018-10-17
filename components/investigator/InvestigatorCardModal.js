@@ -37,8 +37,6 @@ export default class InvestigatorCardModel extends React.Component {
       // width: WIDTH / (props.numColumns || 1) - (props.offset || 0),
       // height: (WIDTH / (props.numColumns || 1) - (props.offset || 0)) * 2,
     };
-
-    console.log('https://arkhamdb.com' + this.state.data.imagesrc);
   };
   
   async componentWillMount() {

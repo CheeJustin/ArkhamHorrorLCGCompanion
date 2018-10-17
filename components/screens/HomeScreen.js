@@ -55,7 +55,7 @@ export default class HomeScreen extends React.Component {
     fontLoaded: false,
     isLoading: true,
     selectedInvestigator: null,
-    data: [],
+    data: null,
   };
 
   selectInvestigator(investigator) {
@@ -100,8 +100,6 @@ export default class HomeScreen extends React.Component {
             isLoading: false,
             data: data,
             // data: data.guardians.concat(data.seekers).concat(data.rogues).concat(data.mystics).concat(data.survivors).concat(data.neutrals),
-          }, function() {
-
           });
         }
         else {
@@ -192,13 +190,43 @@ export default class HomeScreen extends React.Component {
     }
 
     let modal;
+    let list;
+
     if (this.state.selectedInvestigator !== null) {
       modal = <InvestigatorCardModal 
         visible={this.state.selectedInvestigator !== null}
         data={this.state.selectedInvestigator}
         onPress={() => {
           this.selectInvestigator(null);
-        }}/>;
+        }}
+      />;
+    }
+
+    if (this.state.data != null) {
+      list = <SectionList
+        style={styles.flatlist}
+        contentContainerStyle={styles.flatlistContent}
+        keyExtractor={(item, index) => index.toString()}
+        numColumns={4}
+        renderSectionHeader={({section: {title}}) => (
+          <View>
+            <Header
+              style={styles.header}
+              text={title}
+            />
+            <View style={styles.divider} />
+          </View>
+        )}
+        sections={[
+          { title: 'Guardians', data: this.state.data.guardians },
+          { title: 'Seekers', data: this.state.data.seekers },
+          { title: 'Rogues', data: this.state.data.rogues },
+          { title: 'Mystics', data: this.state.data.mystics },
+          { title: 'Survivors', data: this.state.data.survivors },
+          { title: 'Neutrals', data: this.state.data.neutrals },
+        ]}
+        renderItem={this._renderItem}
+      />
     }
 
     return (
@@ -223,30 +251,7 @@ export default class HomeScreen extends React.Component {
               numColumns={4}
               columnWrapperStyle={{ marginTop: 0 }}
             /> */}
-          <SectionList
-            style={styles.flatlist}
-            contentContainerStyle={styles.flatlistContent}
-            keyExtractor={(item, index) => index.toString()}
-            numColumns={4}
-            renderSectionHeader={({section: {title}}) => (
-              <View>
-                <Header
-                  style={styles.header}
-                  text={title}
-                />
-                <View style={styles.divider} />
-              </View>
-            )}
-            sections={[
-              { title: 'Guardians', data: this.state.data.guardians },
-              { title: 'Seekers', data: this.state.data.seekers },
-              { title: 'Rogues', data: this.state.data.rogues },
-              { title: 'Mystics', data: this.state.data.mystics },
-              { title: 'Survivors', data: this.state.data.survivors },
-              { title: 'Neutrals', data: this.state.data.neutrals },
-            ]}
-            renderItem={this._renderItem}
-          />
+          {list}
           <Menu/>
           {modal}
         </View>
@@ -284,6 +289,7 @@ const styles = StyleSheet.create({
   },
   title: {
     marginTop: 32,
+    marignBottom: 8,
   },
   flatlist: {
     width: '100%',
