@@ -2,52 +2,51 @@ import React from 'react';
 import {
   View,
   Image,
-  ImageBackground,
-  Button,
   Text,
   Icon,
   Dimensions,
   StyleSheet,
+  TouchableHighlight,
 } from 'react-native';
 import {
   Colors,
   Metrics
-} from '../styles/common.js';
+} from '../../styles/common.js';
 import { AppLoading, Font } from 'expo';
-import Teutonic from '../assets/fonts/Teutonic.ttf';
+import Teutonic from '../../assets/fonts/Teutonic.ttf';
 
 
 // NOTE: The string passed into the require must be static, so I'm placing it in this variable to pull properly.
 const AVATARS = {
-  '01001': require('../assets/images/investigators/01001.png'),
-  '01002': require('../assets/images/investigators/01002.png'),
-  '01003': require('../assets/images/investigators/01003.png'),
-  '01004': require('../assets/images/investigators/01004.png'),
-  '01005': require('../assets/images/investigators/01005.png'),
+  '01001': require('../../assets/images/investigators/01001.png'),
+  '01002': require('../../assets/images/investigators/01002.png'),
+  '01003': require('../../assets/images/investigators/01003.png'),
+  '01004': require('../../assets/images/investigators/01004.png'),
+  '01005': require('../../assets/images/investigators/01005.png'),
 
-  '02001': require('../assets/images/investigators/02001.png'),
-  '02002': require('../assets/images/investigators/02002.png'),
-  '02003': require('../assets/images/investigators/02003.png'),
-  '02004': require('../assets/images/investigators/02004.png'),
-  '02005': require('../assets/images/investigators/02005.png'),
+  '02001': require('../../assets/images/investigators/02001.png'),
+  '02002': require('../../assets/images/investigators/02002.png'),
+  '02003': require('../../assets/images/investigators/02003.png'),
+  '02004': require('../../assets/images/investigators/02004.png'),
+  '02005': require('../../assets/images/investigators/02005.png'),
 
-  '03001': require('../assets/images/investigators/03001.png'),
-  '03002': require('../assets/images/investigators/03002.png'),
-  '03003': require('../assets/images/investigators/03003.png'),
-  '03004': require('../assets/images/investigators/03004.png'),
-  '03005': require('../assets/images/investigators/03005.png'),
-  '03006': require('../assets/images/investigators/03006.png'),
+  '03001': require('../../assets/images/investigators/03001.png'),
+  '03002': require('../../assets/images/investigators/03002.png'),
+  '03003': require('../../assets/images/investigators/03003.png'),
+  '03004': require('../../assets/images/investigators/03004.png'),
+  '03005': require('../../assets/images/investigators/03005.png'),
+  '03006': require('../../assets/images/investigators/03006.png'),
 
-  '04001': require('../assets/images/investigators/04001.png'),
-  '04002': require('../assets/images/investigators/04002.png'),
-  '04003': require('../assets/images/investigators/04003.png'),
-  '04004': require('../assets/images/investigators/04004.png'),
-  '04005': require('../assets/images/investigators/04005.png'),
+  '04001': require('../../assets/images/investigators/04001.png'),
+  '04002': require('../../assets/images/investigators/04002.png'),
+  '04003': require('../../assets/images/investigators/04003.png'),
+  '04004': require('../../assets/images/investigators/04004.png'),
+  '04005': require('../../assets/images/investigators/04005.png'),
 
-  '99001': require('../assets/images/investigators/99001.png'),
-  '98007': require('../assets/images/investigators/98007.png'),
-  '98010': require('../assets/images/investigators/98010.png'),
-  '98013': require('../assets/images/investigators/98013.png'),
+  '99001': require('../../assets/images/investigators/99001.png'),
+  '98007': require('../../assets/images/investigators/98007.png'),
+  '98010': require('../../assets/images/investigators/98010.png'),
+  '98013': require('../../assets/images/investigators/98013.png'),
 }
 const SPACING = 8;
 // import {
@@ -66,6 +65,7 @@ export default class InvestigatorCard extends React.Component {
     super(props);
     this.state = {
       data: props.data || {},
+      onPress: props.onPress,
       width: Dimensions.get('window').width / (props.numColumns || 1) - (props.offset || 0),
       height: (Dimensions.get('window').width / (props.numColumns || 1) - (props.offset || 0)) * 2,
       avatar: AVATARS[props.data.code],
@@ -90,28 +90,39 @@ export default class InvestigatorCard extends React.Component {
       return <AppLoading />;
     }
     return (
-      <View style={[styles.container, {width: this.state.width, height: this.state.height}]}>
-        <Image
-          source={this.state.avatar}
+      <View
+        style={[styles.container, {width: this.state.width, height: this.state.height}]}>
+        <TouchableHighlight
           style={[
             styles.image,
             { width: this.state.width - SPACING, height: this.state.height - SPACING }
           ]}
-          />
+          onPress={this.state.onPress}
+          underlayColor="white">
+          <View>
+            <Image
+              source={this.state.avatar}
+              style={[
+                styles.image,
+                { width: this.state.width - SPACING, height: this.state.height - SPACING }
+              ]}
+              />
 
-        <Image
-          source={require('../assets/images/overlay.png')}
-          style={[
-            styles.image,
-            { width: this.state.width - SPACING, height: this.state.height - SPACING, position: 'absolute' }
-          ]}
-          />
-        <View style={ styles.textContainer }>
-          <Text style={{ flex: 1 }}/>
-          <Text style={styles.text}>{ this.state.data.name }</Text>
-          <View style={styles.divider} />
-          <Text style={[styles.text, styles.subname]}>{ this.state.data.subname }</Text>
-        </View>
+            <Image
+              source={require('../../assets/images/overlay.png')}
+              style={[
+                styles.image,
+                { width: this.state.width - SPACING, height: this.state.height - SPACING, position: 'absolute' }
+              ]}
+              />
+            <View style={ styles.textContainer }>
+              <Text style={{ flex: 1 }}/>
+              <Text style={styles.text}>{ this.state.data.name }</Text>
+              <View style={styles.divider} />
+              <Text style={[styles.text, styles.subname]}>{ this.state.data.subname }</Text>
+            </View>
+          </View>
+        </TouchableHighlight>
       </View>
     );
   }

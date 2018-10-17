@@ -13,15 +13,18 @@ import {
   Dimensions,
   TextInput,
   ImageBackground,
-  Modal,
   FlatList,
-  LayoutAnimation
+  SectionList,
+  LayoutAnimation,
 } from 'react-native';
 import Menu from '../general/Menu.js';
 import { AppLoading, Font } from 'expo';
 import MaterialIcons from '../../node_modules/@expo/vector-icons/fonts/MaterialIcons.ttf';
 import { Colors } from '../../styles/common.js';
-import InvestigatorCard from '../InvestigatorCard.js';
+import InvestigatorCard from '../investigator/InvestigatorCard.js';
+import InvestigatorCardModal from '../investigator/InvestigatorCardModal.js';
+import Header from '../general/Header.js';
+// import { Header } from '../../node_modules/react-native-elements';
 
 const Datastore = require('react-native-local-mongodb');
 const db = new Datastore({ filename: 'asyncStorageKey', autoload: true });
@@ -34,14 +37,30 @@ const window = Dimensions.get('window');
 //   Roboto_medium: require("native-base/Fonts/Roboto_medium.ttf"),
 //   Ionicons: require("@expo/vector-icons/fonts/Ionicons.ttf"),
 // });
+
+const uniqueAttributeFilter = function(attribute) {
+  if (attribute)
+    return (ele, i, arr) => arr.map(ele => ele[attribute]).indexOf(ele[attribute]) === i
+  else
+    return (ele, i, arr) => arr.indexOf(ele) === i
+};
+
+const factionFilter = function(value) {
+  return (ele) => ele.faction_code === value;
+};
+
 export default class HomeScreen extends React.Component {
 
   state = {
     fontLoaded: false,
     isLoading: true,
-    data: []
+    selectedInvestigator: null,
+    data: [],
   };
 
+  selectInvestigator(investigator) {
+    this.setState({selectedInvestigator: investigator});
+  }
   
 
   async componentWillMount() {
@@ -58,37 +77,29 @@ export default class HomeScreen extends React.Component {
   };
 
   async componentDidMount() {
-    // return fetch('https://facebook.github.io/react-native/movies.json')
-    // return fetch('https://arkhamdb.com/api/public/card/01001')
-    // await db.find({$and: [{type_code: 'investigator'}, { $not: { pack_code: 'books' }}]})
-    //   .sort({ code: 1 })
-    //   .exec(async (err, investigators) => {
-    //     if (investigators.length > 0) {
-    //       console.log('EXISTING investigators count', investigators.length);
-    //       this.setState({
-    //         isLoading: false,
-    //         data: investigators,
-    //       }, function() {
-
-    //       });
-    //       return;
-    //     }
-    //     else {
-    //       console.log('NO investigators');
-    //     }
-    //   });
     this.loadData();
   };
 
   async loadData() {
-    await db.find({$and: [{type_code: 'investigator'}, { $not: { pack_code: 'books' }}]})
+    console.log('loadingData()');
+    await db.find({ type_code: 'investigator' })
       .sort({ code: 1 })
       .exec(async (err, investigators) => {
         if (investigators.length > 0) {
           console.log('EXISTING investigators count', investigators.length);
+          const data = {
+            guardians: investigators.filter(factionFilter('guardian')).filter(uniqueAttributeFilter('name')),
+            seekers: investigators.filter(factionFilter('seeker')).filter(uniqueAttributeFilter('name')),
+            rogues: investigators.filter(factionFilter('rogue')).filter(uniqueAttributeFilter('name')),
+            mystics: investigators.filter(factionFilter('mystic')).filter(uniqueAttributeFilter('name')),
+            survivors: investigators.filter(factionFilter('survivor')).filter(uniqueAttributeFilter('name')),
+            neutrals: investigators.filter(factionFilter('neutral')).filter(uniqueAttributeFilter('name')),
+          };
+
           this.setState({
             isLoading: false,
-            data: investigators,
+            data: data,
+            // data: data.guardians.concat(data.seekers).concat(data.rogues).concat(data.mystics).concat(data.survivors).concat(data.neutrals),
           }, function() {
 
           });
@@ -111,7 +122,7 @@ export default class HomeScreen extends React.Component {
             console.log('Error', err);
           }
           else {
-            await db.find({$and: [{type_code: 'investigator'}, { $not: { pack_code: 'books' }}]})
+            await db.find({type_code: 'investigator'})
               .sort({ code: 1 })
               .exec(async (err, investigators) => {
                 if (investigators.length > 0) {
@@ -133,60 +144,118 @@ export default class HomeScreen extends React.Component {
       .catch((error) =>{
         console.error(error);
       });
-  }
+  };
 
-  renderItem = ({item, index}) => {
-    if (index == '1') {
-        return(
-            <View>
-                <Text>{item.code} {item.name}</Text>
-            </View>
 
-        );
+  _renderItem = ({ section, index }) => {
+    const numColumns = 4
+
+    if (index % numColumns !== 0) return null;
+
+    const items = [];
+
+    for (let i = index; i < index + numColumns; i++) {
+      if (i >= section.data.length) {
+        break;
+      }
+
+      items.push(
+        <View
+          key={index}>
+        <InvestigatorCard
+          data={section.data[i]}
+          numColumns={numColumns}
+          offset={numColumns}
+          onPress={() => {
+            this.selectInvestigator(section.data[i]);
+          }}
+        />
+        </View>
+      );
     }
 
-    // if (item.idex == 2) {
-        return(
-            <View>
-            <Text>{index}</Text>
-                <Text>{item.name}</Text>
-            </View>
-
-        );
-    // }
-
-};
+    return (
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between"
+        }}
+      >
+        {items}
+      </View>
+    );
+  };
 
   render() {
     if (!this.state.fontLoaded || this.state.isLoading) {
       return <AppLoading />;
     }
+
+    let modal;
+    if (this.state.selectedInvestigator !== null) {
+      modal = <InvestigatorCardModal 
+        visible={this.state.selectedInvestigator !== null}
+        data={this.state.selectedInvestigator}
+        onPress={() => {
+          this.selectInvestigator(null);
+        }}/>;
+    }
+
     return (
-      <ImageBackground source={require('../../assets/images/background.png')}
+      <ImageBackground
+        source={require('../../assets/images/background.png')}
         resizeMode='cover' 
         style={styles.background}>
         <View style={styles.container}>
-          <Text style={[styles.text, styles.title]}>Investigators</Text>
-          <FlatList
+          <Header style={styles.title} text="Investigators"/>
+            {/* <FlatList
+              style={styles.flatlist}
+              contentContainerStyle={styles.flatlistContent}
+              data={this.state.data}
+              renderItem={ ({item, i}) =>
+                <InvestigatorCard
+                  data={item}
+                  numColumns={4}
+                  offset={4}
+                />
+              }
+              keyExtractor={(item, index) => index.toString()}
+              numColumns={4}
+              columnWrapperStyle={{ marginTop: 0 }}
+            /> */}
+          <SectionList
             style={styles.flatlist}
             contentContainerStyle={styles.flatlistContent}
-            data={this.state.data}
-            renderItem={ ({item, i}) =>
-              <InvestigatorCard
-                data={item}
-                numColumns={4}
-                offset={4}/>
-            }
             keyExtractor={(item, index) => index.toString()}
             numColumns={4}
-            columnWrapperStyle={{ marginTop: 0 }}
+            renderSectionHeader={({section: {title}}) => (
+              <View>
+                <Header
+                  style={styles.header}
+                  text={title}
+                />
+                <View style={styles.divider} />
+              </View>
+            )}
+            sections={[
+              { title: 'Guardians', data: this.state.data.guardians },
+              { title: 'Seekers', data: this.state.data.seekers },
+              { title: 'Rogues', data: this.state.data.rogues },
+              { title: 'Mystics', data: this.state.data.mystics },
+              { title: 'Survivors', data: this.state.data.survivors },
+              { title: 'Neutrals', data: this.state.data.neutrals },
+            ]}
+            renderItem={this._renderItem}
           />
           <Menu/>
+          {modal}
         </View>
       </ImageBackground>
     );
   }
 }
+
+
 
 const styles = StyleSheet.create({
   background: {
@@ -205,9 +274,16 @@ const styles = StyleSheet.create({
   text: {
     color: Colors.text,
   },
+  titleHeader: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    zIndex: 100,
+    resizeMode: 'contain',
+    justifyContent: 'flex-start',
+  },
   title: {
     marginTop: 32,
-    fontSize: 16,
   },
   flatlist: {
     width: '100%',
@@ -221,6 +297,19 @@ const styles = StyleSheet.create({
     // justifyContent: 'space-between',
     // padding: 10,
     // marginBottom: 40
+  },
+  header: {
+    padding: 8,
+    fontSize: 20,
+  },
+  divider: {
+    backgroundColor: Colors.text,
+    height: 0.5,
+    opacity: 0.2,
+    marginTop: -4,
+    marginBottom: 8,
+    marginLeft: 4,
+    marginRight: 4,
   },
 });
 
